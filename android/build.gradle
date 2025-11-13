@@ -1,11 +1,12 @@
 group 'me.yohom.amap_search_fluttify'
 version '1.0-SNAPSHOT'
 
+// 插件自己的 AGP 配置会和主工程冲突，直接干掉，让它吃主工程的配置
+/*
 buildscript {
     repositories {
         google()
         mavenCentral()
-        
     }
 
     dependencies {
@@ -17,30 +18,43 @@ rootProject.allprojects {
     repositories {
         google()
         mavenCentral()
-        
     }
 }
+*/
 
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 31
+    // ① 必须加 namespace（AGP 8 强制要求）
+    // 建议和 AndroidManifest.xml 里的 package 保持一致
+    namespace "me.yohom.amap_search_fluttify"
+
+    // ② 跟主工程对齐，建议 34（至少 33+）
+    compileSdkVersion 34
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         main.jniLibs.srcDir 'libs'
     }
+
     defaultConfig {
-        minSdkVersion 16
+        // ③ 和 app 保持一致，不要再用 16
+        minSdkVersion 24
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     lintOptions {
         disable 'InvalidPackage'
     }
+
+    // ④ Java 版本升到 11，和你现在工程统一
     compileOptions {
-        targetCompatibility JavaVersion.VERSION_1_8
-        sourceCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
+
+    // ⑤ 这块在 AGP 8 可能再吐槽一次，
+    // 如果后面构建卡在 packagingOptions 上，可以考虑先整段注释掉看冲突情况
     packagingOptions {
         merge 'res/values/values.xml'
         merge 'AndroidManifest.xml'
@@ -48,6 +62,7 @@ android {
         merge 'classes.jar'
         merge 'proguard.txt'
     }
+
     buildTypes {
         release {
             consumerProguardFiles "proguard-rules.pro"
@@ -60,8 +75,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     compileOnly rootProject.findProject(":foundation_fluttify")
-    // flutter plugin dependency
-    
+
     // sdk dependency
     api 'com.amap.api:search:9.2.0'
 }
